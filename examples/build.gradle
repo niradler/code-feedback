@@ -1,0 +1,77 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'checkstyle'
+}
+
+group = 'com.example'
+version = '1.0.0'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.google.guava:guava:32.1.2-jre'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.mockito:mockito-core:5.5.0'
+}
+
+application {
+    mainClass = 'com.example.Main'
+}
+
+// Custom tasks for MCP testing
+task hello {
+    doLast {
+        println 'Hello from Gradle!'
+    }
+}
+
+task customBuild {
+    dependsOn 'build'
+    doLast {
+        println 'Custom build completed successfully!'
+    }
+}
+
+task lint {
+    dependsOn 'checkstyleMain'
+    doLast {
+        println 'Linting completed!'
+    }
+}
+
+// Test configuration
+test {
+    useJUnit()
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+    }
+}
+
+// Checkstyle configuration
+checkstyle {
+    toolVersion = '10.12.3'
+    configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+}
+
+// JAR configuration
+jar {
+    manifest {
+        attributes(
+            'Implementation-Title': project.name,
+            'Implementation-Version': project.version,
+            'Main-Class': 'com.example.Main'
+        )
+    }
+}
+
+// Custom clean task
+clean {
+    doLast {
+        println 'Clean completed!'
+    }
+}

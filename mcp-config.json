@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "code-feedback": {
+      "command": "node",
+      "args": ["C:\\Projects\\mcp\\dist\\index.js"],
+      "env": {}
+    }
+  }
+}
