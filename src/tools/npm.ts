@@ -16,6 +16,21 @@ const listScriptsSchema = z.object({
 });
 type ListScriptsInput = z.infer<typeof listScriptsSchema>;
 
+const installSchema = z.object({
+    projectPath: z.string(),
+    packages: z.array(z.string()),
+    isDev: z.boolean().default(false),
+    timeout: z.number().default(120000),
+});
+type InstallInput = z.infer<typeof installSchema>;
+
+const uninstallSchema = z.object({
+    projectPath: z.string(),
+    packages: z.array(z.string()),
+    timeout: z.number().default(60000),
+});
+type UninstallInput = z.infer<typeof uninstallSchema>;
+
 export const npmTool = {
     name: 'run_npm_script',
     description: 'Run any npm script defined in package.json (test, lint, build, etc.)',
@@ -49,9 +64,9 @@ export const npmTool = {
                 output: ''
             };
         }
-        
+
         const { projectPath, scriptName, timeout } = parseResult.data;
-        
+
         if (!isPathAllowed(projectPath)) {
             return { success: false, errors: ['Path not allowed'] as string[], warnings: [] as string[], output: '' };
         }
@@ -100,9 +115,9 @@ export const listNpmScriptsTool = {
                 scripts: {}
             };
         }
-        
+
         const { projectPath } = parseResult.data;
-        
+
         if (!isPathAllowed(projectPath)) {
             return { success: false, errors: ['Path not allowed'] as string[], scripts: {} };
         }
@@ -113,6 +128,124 @@ export const listNpmScriptsTool = {
             return { success: true, scripts: packageJson.scripts || {} };
         } catch (error: any) {
             return { success: false, errors: [error.message || String(error)], scripts: {} };
+        }
+    },
+};
+
+export const installNpmDepsTool = {
+    name: 'install_npm_deps',
+    description: 'Install npm dependencies (packages) in a project',
+    inputSchema: {
+        type: 'object',
+        properties: {
+            projectPath: {
+                type: 'string',
+                description: 'Path to the project directory containing package.json'
+            },
+            packages: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Array of package names to install'
+            },
+            isDev: {
+                type: 'boolean',
+                description: 'Whether to install as dev dependencies (default: false)',
+                default: false
+            },
+            timeout: {
+                type: 'number',
+                description: 'Timeout in milliseconds (default: 120000)',
+                default: 120000
+            }
+        },
+        required: ['projectPath', 'packages']
+    },
+    async run(args: any) {
+        const parseResult = installSchema.safeParse(args);
+        if (!parseResult.success) {
+            return {
+                success: false,
+                errors: parseResult.error.errors.map(e => `Validation error: ${e.path.join('.')} - ${e.message}`),
+                warnings: [],
+                output: ''
+            };
+        }
+
+        const { projectPath, packages, isDev, timeout } = parseResult.data;
+
+        if (!isPathAllowed(projectPath)) {
+            return { success: false, errors: ['Path not allowed'] as string[], warnings: [] as string[], output: '' };
+        }
+
+        try {
+            const flag = isDev ? '--save-dev' : '--save';
+            const command = `npm install ${flag} ${packages.join(' ')}`;
+            const result = await runCommand(command, { cwd: projectPath, timeout });
+
+            return {
+                success: result.exitCode === 0,
+                errors: result.stderr ? [result.stderr] as string[] : [],
+                warnings: [] as string[],
+                output: result.stdout,
+            };
+        } catch (error: any) {
+            return { success: false, errors: [error.message || String(error)] as string[], warnings: [] as string[], output: '' };
+        }
+    },
+};
+
+export const uninstallNpmDepsTool = {
+    name: 'uninstall_npm_deps',
+    description: 'Uninstall npm dependencies (packages) from a project',
+    inputSchema: {
+        type: 'object',
+        properties: {
+            projectPath: {
+                type: 'string',
+                description: 'Path to the project directory containing package.json'
+            },
+            packages: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Array of package names to uninstall'
+            },
+            timeout: {
+                type: 'number',
+                description: 'Timeout in milliseconds (default: 60000)',
+                default: 60000
+            }
+        },
+        required: ['projectPath', 'packages']
+    },
+    async run(args: any) {
+        const parseResult = uninstallSchema.safeParse(args);
+        if (!parseResult.success) {
+            return {
+                success: false,
+                errors: parseResult.error.errors.map(e => `Validation error: ${e.path.join('.')} - ${e.message}`),
+                warnings: [],
+                output: ''
+            };
+        }
+
+        const { projectPath, packages, timeout } = parseResult.data;
+
+        if (!isPathAllowed(projectPath)) {
+            return { success: false, errors: ['Path not allowed'] as string[], warnings: [] as string[], output: '' };
+        }
+
+        try {
+            const command = `npm uninstall ${packages.join(' ')}`;
+            const result = await runCommand(command, { cwd: projectPath, timeout });
+
+            return {
+                success: result.exitCode === 0,
+                errors: result.stderr ? [result.stderr] as string[] : [],
+                warnings: [] as string[],
+                output: result.stdout,
+            };
+        } catch (error: any) {
+            return { success: false, errors: [error.message || String(error)] as string[], warnings: [] as string[], output: '' };
         }
     },
 }; 

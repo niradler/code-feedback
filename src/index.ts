@@ -2,38 +2,16 @@
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { 
+import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
   InitializeRequestSchema,
   ErrorCode,
   McpError
 } from '@modelcontextprotocol/sdk/types.js';
-
-// Simple test tools with proper schema format
-const testTools = [
-  {
-    name: 'test_echo',
-    description: 'Echo back the input message',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        message: {
-          type: 'string',
-          description: 'Message to echo back'
-        }
-      },
-      required: ['message']
-    },
-    async run(args: any) {
-      return {
-        success: true,
-        message: `Echo: ${args.message || 'No message provided'}`,
-        timestamp: new Date().toISOString()
-      };
-    }
-  }
-];
+import { allTools } from './tools/index.js';
+import { registerResources } from './resources/index.js';
+import { registerPrompts } from './prompts/index.js';
 
 /**
  * Create the MCP server
@@ -46,9 +24,14 @@ const server = new Server(
   {
     capabilities: {
       tools: {},
+      resources: {},
+      prompts: {},
     },
   }
 );
+
+registerResources(server);
+registerPrompts(server);
 
 /**
  * Error handler
@@ -62,11 +45,13 @@ server.onerror = (error) => {
  */
 server.setRequestHandler(InitializeRequestSchema, async () => {
   console.error('[MCP] Received initialize request');
-  
+
   return {
     protocolVersion: '2024-11-05',
     capabilities: {
       tools: {},
+      resources: {},
+      prompts: {},
     },
     serverInfo: {
       name: 'code-feedback-mcp',
@@ -79,10 +64,10 @@ server.setRequestHandler(InitializeRequestSchema, async () => {
  * List tools handler
  */
 server.setRequestHandler(ListToolsRequestSchema, async () => {
-  console.error(`[MCP] Listing ${testTools.length} available tools`);
-  
+  console.error(`[MCP] Listing ${allTools.length} available tools`);
+
   return {
-    tools: testTools.map(tool => ({
+    tools: allTools.map(tool => ({
       name: tool.name,
       description: tool.description,
       inputSchema: tool.inputSchema,
@@ -95,11 +80,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
  */
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
-  
+
   console.error(`[MCP] Tool call: ${name}`);
-  
+
   // Find the tool
-  const tool = testTools.find(t => t.name === name);
+  const tool = allTools.find(t => t.name === name);
   if (!tool) {
     throw new McpError(
       ErrorCode.MethodNotFound,
@@ -110,7 +95,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     // Execute the tool
     const result = await tool.run(args || {});
-    
+
     // Return the result in MCP format
     return {
       content: [
@@ -144,14 +129,14 @@ process.on('SIGINT', async () => {
 async function run() {
   try {
     console.error('[MCP] Starting Code Feedback MCP Server v1.0.0...');
-    
+
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    
+
     console.error('[MCP] Server started successfully');
-    console.error(`[MCP] Available tools: ${testTools.map(t => t.name).join(', ')}`);
+    console.error(`[MCP] Available tools: ${allTools.map(t => t.name).join(', ')}`);
     console.error('[MCP] Ready to receive requests');
-    
+
   } catch (error) {
     console.error('[MCP] Failed to start server:', error);
     process.exit(1);
