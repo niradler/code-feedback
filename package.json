@@ -24,15 +24,11 @@
     "node": ">=16.0.0"
   },
   "scripts": {
-    "setup": "node setup.mjs",
     "build": "tsc",
     "dev": "tsc --watch",
     "start": "node dist/index.js",
-    "test": "node test.mjs",
-    "test:multilang": "node test-multilang.mjs",
-    "test:all": "npm run test && npm run test:multilang",
-    "test:unit": "vitest",
-    "lint": "eslint src/**/*.ts",
+    "test": "vitest",
+    "lint": "eslint src/**/*.ts --quiet",
     "lint:fix": "eslint src/**/*.ts --fix",
     "prepublishOnly": "npm run build"
   },
@@ -46,15 +42,18 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0",
-    "zod": "^3.22.0"
+    "@modelcontextprotocol/sdk": "^1.13.2",
+    "zod": "^3.25.67"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0",
-    "eslint": "^8.0.0",
-    "typescript": "^5.0.0",
+    "@eslint/js": "^9.30.0",
+    "@types/node": "^24.0.6",
+    "@typescript-eslint/eslint-plugin": "^8.35.0",
+    "@typescript-eslint/parser": "^8.35.0",
+    "eslint": "^9.30.0",
+    "eslint-config-prettier": "^10.1.5",
+    "prettier": "^3.6.2",
+    "typescript": "^5.8.3",
     "vitest": "^3.2.4"
   }
 }

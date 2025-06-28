@@ -1,31 +1,14 @@
-import { join, resolve } from 'path';
+import { resolve } from 'path';
 
 // Get allowed paths from environment or use sensible defaults
 const getAllowedPathsFromEnv = (): string[] => {
   const envPaths = process.env.MCP_ALLOWED_PATHS;
-  
+
   if (envPaths) {
     return envPaths.split(',').map(path => path.trim()).filter(path => path.length > 0);
   }
-  
-  // Default allowed paths if none specified
-  const defaultPaths = [
-    process.cwd(), // Current working directory
-    '.', // Relative current directory
-  ];
-  
-  // Add home directory projects if available
-  const homeDir = process.env.HOME || process.env.USERPROFILE;
-  if (homeDir) {
-    defaultPaths.push(
-      join(homeDir, 'Projects'),
-      join(homeDir, 'projects'),
-      join(homeDir, 'Documents'),
-      join(homeDir, 'Desktop')
-    );
-  }
-  
-  return defaultPaths;
+
+  return [];
 };
 
 const allowedPaths = getAllowedPathsFromEnv();
@@ -37,10 +20,10 @@ export function isPathAllowed(targetPath: string): boolean {
   if (!targetPath) {
     return false;
   }
-  
+
   try {
     const absTarget = resolve(targetPath);
-    
+
     // Check against each allowed path
     const isAllowed = allowedPaths.some(basePath => {
       try {
@@ -51,12 +34,12 @@ export function isPathAllowed(targetPath: string): boolean {
         return false;
       }
     });
-    
+
     if (!isAllowed) {
       console.error(`[MCP] Path access denied: ${absTarget}`);
       console.error(`[MCP] Allowed paths: ${allowedPaths.map(p => resolve(p)).join(', ')}`);
     }
-    
+
     return isAllowed;
   } catch (error) {
     console.error(`[MCP] Error checking path permissions for ${targetPath}:`, error);

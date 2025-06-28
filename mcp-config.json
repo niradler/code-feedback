@@ -1,9 +1,14 @@
 {
   "mcpServers": {
     "code-feedback": {
-      "command": "node",
-      "args": ["C:\\Projects\\mcp\\dist\\index.js"],
-      "env": {}
+      "command": "npx",
+      "args": [
+        "-y",
+        "code-feedback"
+      ],
+      "env": {
+        "MCP_ALLOWED_PATHS": "C:/Projects"
+      }
     }
   }
 }

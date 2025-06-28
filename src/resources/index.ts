@@ -1,5 +1,3 @@
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-
-export function registerResources(server: Server) {
+export function registerResources() {
     // Import and register each resource here
 } 

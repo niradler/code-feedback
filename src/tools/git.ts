@@ -24,7 +24,6 @@ const inputSchema = z.object({
     message: z.string().optional(),
     timeout: z.number().default(60000),
 });
-type Input = z.infer<typeof inputSchema>;
 
 export const gitTool = {
     name: 'run_git_command',
@@ -112,7 +111,7 @@ export const gitTool = {
                     break;
                 case 'commit':
                     command += ' commit';
-                    if (message) command += ` -m "${message.replace(/"/g, '\"')}"`;
+                    if (message) command += ` -m "${message}"`;
                     if (gitArgs.length > 0) command += ` ${gitArgs.join(' ')}`;
                     break;
                 case 'custom':

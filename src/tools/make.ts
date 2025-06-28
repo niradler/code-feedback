@@ -10,13 +10,11 @@ const inputSchema = z.object({
     makeArgs: z.array(z.string()).default([]),
     timeout: z.number().default(60000),
 });
-type Input = z.infer<typeof inputSchema>;
 
 const listMakeCommandsInputSchema = z.object({
     projectPath: z.string(),
     timeout: z.number().default(30000),
 });
-type ListMakeCommandsInput = z.infer<typeof listMakeCommandsInputSchema>;
 
 export const makeTool = {
     name: 'run_make_command',

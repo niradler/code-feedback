@@ -18,4 +18,10 @@ export const allTools = [
     installNpmDepsTool,
     uninstallNpmDepsTool,
     gitTool,
-]; 
+];
+
+export function registerTools(server: { registerTool: (tool: any) => void }) {
+    for (const tool of allTools) {
+        server.registerTool(tool);
+    }
+} 

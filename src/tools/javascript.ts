@@ -7,7 +7,6 @@ import { promises as fs } from 'fs';
 const inputSchema = z.object({
     filePath: z.string(),
 });
-type Input = z.infer<typeof inputSchema>;
 
 export const javascriptTool = {
     name: 'validate_javascript_file',
@@ -33,9 +32,9 @@ export const javascriptTool = {
                 output: ''
             };
         }
-        
+
         const { filePath } = parseResult.data;
-        
+
         if (!isPathAllowed(filePath)) {
             return { success: false, errors: ['Path not allowed'] as string[], warnings: [] as string[], output: '' };
         }

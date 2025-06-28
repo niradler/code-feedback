@@ -9,12 +9,10 @@ const inputSchema = z.object({
     scriptName: z.string(),
     timeout: z.number().default(60000),
 });
-type Input = z.infer<typeof inputSchema>;
 
 const listScriptsSchema = z.object({
     projectPath: z.string(),
 });
-type ListScriptsInput = z.infer<typeof listScriptsSchema>;
 
 const installSchema = z.object({
     projectPath: z.string(),
@@ -22,14 +20,12 @@ const installSchema = z.object({
     isDev: z.boolean().default(false),
     timeout: z.number().default(120000),
 });
-type InstallInput = z.infer<typeof installSchema>;
 
 const uninstallSchema = z.object({
     projectPath: z.string(),
     packages: z.array(z.string()),
     timeout: z.number().default(60000),
 });
-type UninstallInput = z.infer<typeof uninstallSchema>;
 
 export const npmTool = {
     name: 'run_npm_script',

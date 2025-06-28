@@ -10,8 +10,6 @@ const inputSchema = z.object({
     tsConfigPath: z.string().optional().describe('Optional path to tsconfig.json (defaults to searching up the directory tree)'),
 });
 
-type Input = z.infer<typeof inputSchema>;
-
 export const typescriptTool = {
     name: 'validate_typescript_file',
     description: 'Validate and compile a TypeScript file, checking for syntax and type errors',
@@ -29,7 +27,7 @@ export const typescriptTool = {
         },
         required: ['filePath']
     },
-    
+
     async run(args: any) {
         // Validate input using Zod
         const parseResult = inputSchema.safeParse(args);
@@ -41,23 +39,23 @@ export const typescriptTool = {
                 output: ''
             };
         }
-        
+
         const { filePath, tsConfigPath } = parseResult.data;
-        
+
         // Validate path permissions
         if (!isPathAllowed(filePath)) {
-            return { 
-                success: false, 
-                errors: ['Path not allowed: File access is restricted to allowed directories'], 
-                warnings: [], 
-                output: '' 
+            return {
+                success: false,
+                errors: ['Path not allowed: File access is restricted to allowed directories'],
+                warnings: [],
+                output: ''
             };
         }
-        
+
         try {
             // Check if file exists
             await fs.access(filePath);
-            
+
             // Find tsconfig.json if not provided
             let configPath = tsConfigPath;
             if (!configPath) {
@@ -73,21 +71,21 @@ export const typescriptTool = {
                     }
                 }
             }
-            
+
             // Run TypeScript compiler
             const tscCommand = configPath
                 ? `npx tsc --noEmit --project "${configPath}" "${filePath}"`
                 : `npx tsc --noEmit "${filePath}"`;
-                
+
             const result = await runCommand(tscCommand, { cwd: dirname(filePath) });
-            
+
             const feedback = {
                 success: result.exitCode === 0,
                 errors: [] as string[],
                 warnings: [] as string[],
                 output: result.stdout + result.stderr,
             };
-            
+
             // Parse TypeScript compiler output
             if (result.stderr) {
                 const lines = result.stderr.split('\n').filter(line => line.trim());
@@ -99,14 +97,14 @@ export const typescriptTool = {
                     }
                 });
             }
-            
+
             return feedback;
         } catch (error: any) {
-            return { 
-                success: false, 
-                errors: [error.message || String(error)], 
-                warnings: [], 
-                output: error.stack || '' 
+            return {
+                success: false,
+                errors: [error.message || String(error)],
+                warnings: [],
+                output: error.stack || ''
             };
         }
     },

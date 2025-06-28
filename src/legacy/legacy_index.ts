@@ -7,12 +7,9 @@ import {
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
-import { spawn, exec } from 'child_process';
+import { exec } from 'child_process';
 import { promises as fs } from 'fs';
 import { join, extname, dirname } from 'path';
-import { promisify } from 'util';
-
-const execAsync = promisify(exec);
 
 // Types for our tool responses
 interface CodeFeedback {
@@ -568,7 +565,7 @@ class CodeFeedbackMCP {
             }
           });
         }
-      } catch (parseError) {
+      } catch {
         // If JSON parsing fails, treat stderr as errors
         if (result.stderr) {
           feedback.errors.push(result.stderr);

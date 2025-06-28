@@ -9,7 +9,6 @@ const inputSchema = z.object({
     checkFormat: z.boolean().default(true),
     runTests: z.boolean().default(false),
 });
-type Input = z.infer<typeof inputSchema>;
 
 export const goTool = {
     name: 'validate_go_file',
@@ -45,9 +44,9 @@ export const goTool = {
                 output: ''
             };
         }
-        
+
         const { filePath, checkFormat, runTests } = parseResult.data;
-        
+
         if (!isPathAllowed(filePath)) {
             return { success: false, errors: ['Path not allowed'] as string[], warnings: [] as string[], output: '' };
         }

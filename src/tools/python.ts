@@ -9,7 +9,6 @@ const inputSchema = z.object({
     linter: z.enum(['pylint', 'flake8', 'black', 'mypy']).optional(),
     fix: z.boolean().default(false),
 });
-type Input = z.infer<typeof inputSchema>;
 
 export const pythonTool = {
     name: 'validate_python_file',
@@ -45,9 +44,9 @@ export const pythonTool = {
                 output: ''
             };
         }
-        
+
         const { filePath, linter, fix } = parseResult.data;
-        
+
         if (!isPathAllowed(filePath)) {
             return { success: false, errors: ['Path not allowed'] as string[], warnings: [] as string[], output: '' };
         }
