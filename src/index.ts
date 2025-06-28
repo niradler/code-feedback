@@ -12,6 +12,7 @@ import {
 import { allTools } from './tools/index.js';
 import { registerResources } from './resources/index.js';
 import { registerPrompts } from './prompts/index.js';
+const VERSION = '__VERSION__';
 
 /**
  * Create the MCP server
@@ -19,7 +20,7 @@ import { registerPrompts } from './prompts/index.js';
 const server = new Server(
   {
     name: 'code-feedback-mcp',
-    version: '1.0.0',
+    version: VERSION,
   },
   {
     capabilities: {
@@ -55,7 +56,7 @@ server.setRequestHandler(InitializeRequestSchema, async () => {
     },
     serverInfo: {
       name: 'code-feedback-mcp',
-      version: '1.0.0',
+      version: VERSION,
     },
   };
 });
@@ -128,7 +129,7 @@ process.on('SIGINT', async () => {
  */
 async function run() {
   try {
-    console.error('[MCP] Starting Code Feedback MCP Server v1.0.0...');
+    console.error(`[MCP] Starting Code Feedback MCP Server v${VERSION}...`);
 
     const transport = new StdioServerTransport();
     await server.connect(transport);
