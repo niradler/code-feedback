@@ -30,7 +30,7 @@ const server = new Server(
   }
 );
 
-registerResources(server);
+registerResources();
 registerPrompts(server);
 
 /**
