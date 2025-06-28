@@ -30,7 +30,8 @@
     "test": "vitest",
     "lint": "eslint src/**/*.ts --quiet",
     "lint:fix": "eslint src/**/*.ts --fix",
-    "prepublishOnly": "npm run build && node bump-version.mjs"
+    "prepublishOnly": "npm run build && node bump-version.mjs",
+    "inspector": "npx @modelcontextprotocol/inspector dist/index.js"
   },
   "keywords": [
     "mcp",
