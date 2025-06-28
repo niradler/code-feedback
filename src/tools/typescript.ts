@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { runCommand } from '../utils/command.js';
-import { isPathAllowed } from '../config/allowedPaths.js';
+import Config from '../config/index.js';
 import { dirname, join } from 'path';
 import { promises as fs } from 'fs';
 
@@ -43,7 +43,7 @@ export const typescriptTool = {
         const { filePath, tsConfigPath } = parseResult.data;
 
         // Validate path permissions
-        if (!isPathAllowed(filePath)) {
+        if (!Config.getInstance().isPathAllowed(filePath)) {
             return {
                 success: false,
                 errors: ['Path not allowed: File access is restricted to allowed directories'],
@@ -74,10 +74,11 @@ export const typescriptTool = {
 
             // Run TypeScript compiler
             const tscCommand = configPath
-                ? `npx tsc --noEmit --project "${configPath}" "${filePath}"`
+                ? `npx tsc --noEmit --project "${configPath}"`
                 : `npx tsc --noEmit "${filePath}"`;
 
-            const result = await runCommand(tscCommand, { cwd: dirname(filePath) });
+            const cwd = configPath ? dirname(configPath) : undefined;
+            const result = await runCommand(tscCommand, cwd ? { cwd } : {});
 
             const feedback = {
                 success: result.exitCode === 0,

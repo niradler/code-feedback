@@ -24,4 +24,6 @@ export function registerTools(server: { registerTool: (tool: any) => void }) {
     for (const tool of allTools) {
         server.registerTool(tool);
     }
-} 
+}
+
+export { listNpmScriptsTool } from './npm.js'; 

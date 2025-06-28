@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { runCommand } from '../utils/command.js';
-import { isPathAllowed } from '../config/allowedPaths.js';
+import Config from '../config/index.js';
 import { join } from 'path';
 import { promises as fs } from 'fs';
 
@@ -63,7 +63,7 @@ export const npmTool = {
 
         const { projectPath, scriptName, timeout } = parseResult.data;
 
-        if (!isPathAllowed(projectPath)) {
+        if (!Config.getInstance().isPathAllowed(projectPath)) {
             return { success: false, errors: ['Path not allowed'] as string[], warnings: [] as string[], output: '' };
         }
         try {
@@ -114,7 +114,7 @@ export const listNpmScriptsTool = {
 
         const { projectPath } = parseResult.data;
 
-        if (!isPathAllowed(projectPath)) {
+        if (!Config.getInstance().isPathAllowed(projectPath)) {
             return { success: false, errors: ['Path not allowed'] as string[], scripts: {} };
         }
         try {
@@ -169,7 +169,7 @@ export const installNpmDepsTool = {
 
         const { projectPath, packages, isDev, timeout } = parseResult.data;
 
-        if (!isPathAllowed(projectPath)) {
+        if (!Config.getInstance().isPathAllowed(projectPath)) {
             return { success: false, errors: ['Path not allowed'] as string[], warnings: [] as string[], output: '' };
         }
 
@@ -226,7 +226,7 @@ export const uninstallNpmDepsTool = {
 
         const { projectPath, packages, timeout } = parseResult.data;
 
-        if (!isPathAllowed(projectPath)) {
+        if (!Config.getInstance().isPathAllowed(projectPath)) {
             return { success: false, errors: ['Path not allowed'] as string[], warnings: [] as string[], output: '' };
         }
 

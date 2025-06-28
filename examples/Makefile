@@ -1,66 +1,41 @@
-# Simple Makefile for testing make commands
+# Simple example Makefile for demonstrating make structure
 
 # Variables
-CC = gcc
-CFLAGS = -Wall -Wextra -std=c99
-SRCDIR = src
-BUILDDIR = build
-SOURCES = $(wildcard $(SRCDIR)/*.c)
-OBJECTS = $(SOURCES:$(SRCDIR)/%.c=$(BUILDDIR)/%.o)
-TARGET = $(BUILDDIR)/main
+PROJECT = example-project
+VERSION = 1.0
 
 # Default target
-.PHONY: all clean test help
+.DEFAULT_GOAL := all
 
-all: $(TARGET)
+# Phony targets (don't create files with these names)
+.PHONY: all build test clean install help
 
-# Create build directory if it doesn't exist
-$(BUILDDIR):
-	mkdir -p $(BUILDDIR)
-
-# Compile object files
-$(BUILDDIR)/%.o: $(SRCDIR)/%.c | $(BUILDDIR)
-	$(CC) $(CFLAGS) -c $< -o $@
-
-# Link the final executable
-$(TARGET): $(OBJECTS)
-	$(CC) $(OBJECTS) -o $@
+# Default target
+all:
+	@echo "Building $(PROJECT) version $(VERSION)"
 
 # Build target
-build: $(TARGET)
-	@echo "Build completed successfully!"
+build:
+	@echo "Compiling source files"
 
-# Test target
-test: $(TARGET)
-	@echo "Running tests..."
-	@echo "All tests passed!"
+# Test target  
+test:
+	@echo "Running tests"
 
-# Clean build artifacts
+# Clean target
 clean:
-	rm -rf $(BUILDDIR)
-	@echo "Clean completed!"
+	@echo "Cleaning build artifacts"
 
-# Install (example)
-install: $(TARGET)
-	@echo "Installing $(TARGET)..."
-	@echo "Install completed!"
+# Install target
+install:
+	@echo "Installing $(PROJECT)"
 
-# Help
+# Help target
 help:
 	@echo "Available targets:"
 	@echo "  all     - Build the project (default)"
-	@echo "  build   - Build the project"
+	@echo "  build   - Compile source files"
 	@echo "  test    - Run tests"
-	@echo "  clean   - Clean build artifacts"
-	@echo "  install - Install the binary"
-	@echo "  help    - Show this help message"
-
-# Linting (if you have clang-format or similar)
-lint:
-	@echo "Running code formatting check..."
-	@echo "Lint completed!"
-
-# Format code
-format:
-	@echo "Formatting code..."
-	@echo "Format completed!"
+	@echo "  clean   - Clean build artifacts" 
+	@echo "  install - Install the project"
+	@echo "  help    - Show this help"

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { runCommand } from '../utils/command.js';
-import { isPathAllowed } from '../config/allowedPaths.js';
+import Config from '../config/index.js';
 import { join } from 'path';
 import { promises as fs } from 'fs';
 
@@ -58,7 +58,7 @@ export const makeTool = {
 
         const { projectPath, target, makeArgs, timeout } = parseResult.data;
 
-        if (!isPathAllowed(projectPath)) {
+        if (!Config.getInstance().isPathAllowed(projectPath)) {
             return { success: false, errors: ['Path not allowed'] as string[], warnings: [] as string[], output: '' };
         }
         try {
@@ -86,11 +86,12 @@ function extractMakeTargets(stdout: string): string[] {
 
     for (const line of lines) {
         const trimmed = line.trim();
-        if (trimmed && !trimmed.startsWith('#') && !trimmed.startsWith('make:') && !trimmed.startsWith('echo')) {
-            const match = trimmed.match(/^([a-zA-Z0-9._-]+):/);
-            if (match && match[1]) {
-                targets.push(match[1]);
-            }
+        if (trimmed && trimmed.startsWith('.PHONY:')) {
+            trimmed.split('.PHONY: ')[1]?.split(' ').forEach(target => {
+                if (target) {
+                    targets.push(target);
+                }
+            });
         }
     }
 
@@ -128,14 +129,14 @@ export const listMakeCommandsTool = {
 
         const { projectPath, timeout } = parseResult.data;
 
-        if (!isPathAllowed(projectPath)) {
+        if (!Config.getInstance().isPathAllowed(projectPath)) {
             return { success: false, errors: ['Path not allowed'] as string[], warnings: [] as string[], output: '' };
         }
 
         try {
             await fs.access(join(projectPath, 'Makefile'));
 
-            const result = await runCommand('make -n', { cwd: projectPath, timeout });
+            const result = await runCommand('make -p', { cwd: projectPath, timeout });
 
             if (result.exitCode === 0) {
                 const stdout = result.stdout || '';

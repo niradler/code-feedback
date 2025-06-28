@@ -2,11 +2,12 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { makeTool, listMakeCommandsTool } from '../src/tools/make.js';
 import { join } from 'path';
 import { promises as fs } from 'fs';
-
+import Config from '../src/config/index.js';
 describe('Make Tools', () => {
     const testProjectPath = join(process.cwd(), 'examples');
 
     beforeAll(async () => {
+        Config.getInstance().addAllowedPaths([testProjectPath]);
         try {
             await fs.access(join(testProjectPath, 'Makefile'));
         } catch {
@@ -19,7 +20,6 @@ describe('Make Tools', () => {
             const result = await listMakeCommandsTool.run({
                 projectPath: testProjectPath
             });
-
             expect(result.success).toBe(true);
             expect(result.errors).toEqual([]);
             expect(result.output).toContain('Available make targets:');

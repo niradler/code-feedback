@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { runCommand } from '../utils/command.js';
-import { isPathAllowed } from '../config/allowedPaths.js';
+import Config from '../config/index.js';
 import { dirname } from 'path';
 import { promises as fs } from 'fs';
 
@@ -47,7 +47,7 @@ export const pythonTool = {
 
         const { filePath, linter, fix } = parseResult.data;
 
-        if (!isPathAllowed(filePath)) {
+        if (!Config.getInstance().isPathAllowed(filePath)) {
             return { success: false, errors: ['Path not allowed'] as string[], warnings: [] as string[], output: '' };
         }
         try {

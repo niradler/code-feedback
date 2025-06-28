@@ -24,7 +24,7 @@ const server = new Server(
   {
     capabilities: {
       tools: {},
-      resources: {},
+      // resources: {},
       prompts: {},
     },
   }
@@ -50,7 +50,7 @@ server.setRequestHandler(InitializeRequestSchema, async () => {
     protocolVersion: '2024-11-05',
     capabilities: {
       tools: {},
-      resources: {},
+      // resources: {},
       prompts: {},
     },
     serverInfo: {

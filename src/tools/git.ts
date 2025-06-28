@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { runCommand } from '../utils/command.js';
-import { isPathAllowed } from '../config/allowedPaths.js';
+import Config from '../config/index.js';
 import { promises as fs } from 'fs';
 import { join } from 'path';
 
@@ -82,7 +82,7 @@ export const gitTool = {
             };
         }
         const { repoPath, gitCommand, args: gitArgs, message, timeout } = parseResult.data;
-        if (!isPathAllowed(repoPath)) {
+        if (!Config.getInstance().isPathAllowed(repoPath)) {
             return { success: false, errors: ['Path not allowed'], warnings: [], output: '' };
         }
         try {
