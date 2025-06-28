@@ -72,7 +72,7 @@ Configure allowed paths and server settings in `mcp-config.json`:
       "command": "npx",
       "args": ["-y", "code-feedback"],
       "env": {
-        "MCP_ALLOWED_PATHS": "C:/Projects"
+        "MCP_ALLOWED_PATHS": "C:/tests"
       }
     }
   }
@@ -241,8 +241,50 @@ We welcome contributions! To add a new tool or prompt:
 
 ## License
 
-[MIT](LICENSE) (or specify your license here)
+[MIT](LICENSE)
 
 ---
 
-For more, see the code, configuration, and examples in this repository.
+## Example
+
+**User**:
+
+validate the code in D:\Projects\tests\code-feedback-mcp\package.json that it is compile, tests passing, and git status is clean, use code feedback tools
+
+**AI**:
+
+I'll help you validate the code in your project directory. Let me start by checking what's available and then run through the validation steps.Great! I can access your project directory. Let me first examine the project structure and then run the validation checks.Now let me check the available npm scripts and run the validation steps:Let me start by checking the git status:I can see there are uncommitted changes to package.json. Now let me run the build process to check if the code compiles:Great! The build succeeded. Now let me run the tests:Excellent! All tests are passing. Now let me run the linter to check code quality:Perfect! The linting passed with no issues. Now let me check the current git status again to see the changes:Let me check what changes were made to package.json:## Validation Summary
+
+Here are the results of validating your code-feedback-mcp project:
+
+### ✅ **Compilation Status: SUCCESS**
+
+- TypeScript compilation completed successfully
+- The build process ran without errors
+- Post-build version bump executed correctly (version updated from 0.0.5 to 0.0.7)
+
+### ✅ **Test Status: ALL PASSING**
+
+- **19 tests passed** across 6 test files
+- Test files covered: Go, Python, JavaScript, TypeScript, NPM, and Make tools
+- Total test duration: 805ms
+- No test failures or errors
+
+### ✅ **Code Quality: CLEAN**
+
+- ESLint ran successfully with no issues
+- All TypeScript files passed linting with `--quiet` flag
+- No code quality warnings or errors
+
+### ⚠️ **Git Status: NOT CLEAN**
+
+- There is **1 uncommitted change**: `package.json`
+- The change is a version bump from 0.0.5 to 0.0.7 (automated by the post-build script)
+- This appears to be an expected change from the build process
+
+### Recommendations:
+
+1. **Commit the version change**: The package.json version bump is from your build process and should be committed
+2. **Consider git workflow**: You might want to commit this change to have a clean working directory
+
+If you'd like me to help commit this change or investigate any other aspects of the codebase, just let me know!
