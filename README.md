@@ -28,6 +28,8 @@ Modern codebases are polyglot and complex. Automated, language-agnostic feedback
 - Advanced prompt system for code review, analysis, and more
 - Cross-platform: Windows, macOS, Linux
 
+![code_feedback](examples/code_feedback.gif)
+
 ---
 
 ## How It Works
@@ -63,7 +65,7 @@ npm run build
 
 ## Configuration
 
-Configure allowed paths and server settings in `mcp-config.json`:
+Configure allowed paths and server settings in `mcp-config.json` or `claude_desktop_config.json`:
 
 ```json
 {
