@@ -5,6 +5,7 @@ import { goTool } from './go.js';
 import { makeTool, listMakeCommandsTool } from './make.js';
 import { npmTool, listNpmScriptsTool, installNpmDepsTool, uninstallNpmDepsTool } from './npm.js';
 import { gitTool } from './git.js';
+import { uvInitTool, uvAddTool, uvRunTool, uvLockTool, uvSyncTool, uvVenvTool } from './uv.js';
 
 export const allTools = [
     typescriptTool,
@@ -18,6 +19,12 @@ export const allTools = [
     installNpmDepsTool,
     uninstallNpmDepsTool,
     gitTool,
+    uvInitTool,
+    uvAddTool,
+    uvRunTool,
+    uvLockTool,
+    uvSyncTool,
+    uvVenvTool,
 ];
 
 export function registerTools(server: { registerTool: (tool: any) => void }) {
