@@ -8,6 +8,7 @@ import { gitTool } from './git.js';
 import { uvInitTool, uvAddTool, uvRunTool, uvLockTool, uvSyncTool, uvVenvTool } from './uv.js';
 import { curlTool } from './curl.js';
 import { dockerTool } from './docker.js';
+import { editorTool } from './editor.js';
 
 export const allTools = [
     typescriptTool,
@@ -29,6 +30,7 @@ export const allTools = [
     uvVenvTool,
     curlTool,
     dockerTool,
+    editorTool,
 ];
 
 export function registerTools(server: { registerTool: (tool: any) => void }) {
