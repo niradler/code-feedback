@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { runCommand } from '../utils/command.js';
 import Config from '../config/index.js';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
 import { promises as fs } from 'fs';
 
 const inputSchema = z.object({
@@ -50,11 +50,35 @@ export const pythonTool = {
         if (!Config.getInstance().isPathAllowed(filePath)) {
             return { success: false, errors: ['Path not allowed'] as string[], warnings: [] as string[], output: '' };
         }
+
+        // Find venv or .venv python executable (check up to 2 parent directories)
+        async function findVenvPython(startDir: string): Promise<string | null> {
+            let currentDir = startDir;
+            let levels = 0;
+            while (levels < 3) { // current, parent, grandparent
+                for (const venvName of ['venv', '.venv']) {
+                    const venvPath = join(currentDir, venvName, process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python');
+                    try {
+                        await fs.access(venvPath);
+                        return venvPath;
+                    } catch { /* ignore not found */ }
+                }
+                const parentDir = dirname(currentDir);
+                if (parentDir === currentDir) break; // reached root
+                currentDir = parentDir;
+                levels++;
+            }
+            return null;
+        }
+
         try {
             await fs.access(filePath);
             const feedback = { success: true, errors: [] as string[], warnings: [] as string[], output: '' };
+            const fileDir = dirname(filePath);
+            const venvPython = await findVenvPython(fileDir);
+            const pythonExec = venvPython || 'python';
             // Syntax check
-            const syntaxResult = await runCommand(`python -m py_compile "${filePath}"`, { cwd: dirname(filePath) });
+            const syntaxResult = await runCommand(`${pythonExec} -m py_compile "${filePath}"`, { cwd: fileDir });
             if (syntaxResult.exitCode !== 0) {
                 feedback.success = false;
                 feedback.errors.push(`Syntax error: ${syntaxResult.stderr}`);
@@ -65,12 +89,12 @@ export const pythonTool = {
             if (linter && feedback.success) {
                 let lintCommand = '';
                 switch (linter) {
-                    case 'pylint': lintCommand = `pylint "${filePath}"`; break;
-                    case 'flake8': lintCommand = `flake8 "${filePath}"`; break;
-                    case 'black': lintCommand = fix ? `black "${filePath}"` : `black --check "${filePath}"`; break;
-                    case 'mypy': lintCommand = `mypy "${filePath}"`; break;
+                    case 'pylint': lintCommand = `${pythonExec} -m pylint "${filePath}"`; break;
+                    case 'flake8': lintCommand = `${pythonExec} -m flake8 "${filePath}"`; break;
+                    case 'black': lintCommand = fix ? `${pythonExec} -m black "${filePath}"` : `${pythonExec} -m black --check "${filePath}"`; break;
+                    case 'mypy': lintCommand = `${pythonExec} -m mypy "${filePath}"`; break;
                 }
-                const lintResult = await runCommand(lintCommand, { cwd: dirname(filePath) });
+                const lintResult = await runCommand(lintCommand, { cwd: fileDir });
                 feedback.output += `${linter}: ${lintResult.stdout}\n`;
                 if (lintResult.exitCode !== 0) {
                     if (linter === 'pylint' && lintResult.exitCode < 32) {

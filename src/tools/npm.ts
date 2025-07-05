@@ -27,6 +27,17 @@ const uninstallSchema = z.object({
     timeout: z.number().default(60000),
 });
 
+// Utility to detect package manager based on lock files
+async function detectPackageManager(projectPath: string): Promise<'pnpm' | 'yarn' | 'npm'> {
+    const pnpmLock = join(projectPath, 'pnpm-lock.yaml');
+    const yarnLock = join(projectPath, 'yarn.lock');
+    const npmLock = join(projectPath, 'package-lock.json');
+    if (await fs.stat(pnpmLock).then(() => true, () => false)) return 'pnpm';
+    if (await fs.stat(yarnLock).then(() => true, () => false)) return 'yarn';
+    if (await fs.stat(npmLock).then(() => true, () => false)) return 'npm';
+    return 'npm';
+}
+
 export const npmTool = {
     name: 'run_npm_script',
     description: 'Run any npm script defined in package.json (test, lint, build, etc.)',
@@ -73,7 +84,15 @@ export const npmTool = {
             if (!packageJson.scripts || !packageJson.scripts[scriptName]) {
                 return { success: false, errors: [`Script '${scriptName}' not found in package.json`] as string[], warnings: [] as string[], output: '' };
             }
-            const command = `npm run ${scriptName}`;
+            const pm = await detectPackageManager(projectPath);
+            let command;
+            if (pm === 'yarn') {
+                command = `yarn ${scriptName}`;
+            } else if (pm === 'pnpm') {
+                command = `pnpm run ${scriptName}`;
+            } else {
+                command = `npm run ${scriptName}`;
+            }
             const result = await runCommand(command, { cwd: projectPath, timeout });
             const feedback = {
                 success: result.exitCode === 0,
@@ -174,8 +193,16 @@ export const installNpmDepsTool = {
         }
 
         try {
-            const flag = isDev ? '--save-dev' : '--save';
-            const command = `npm install ${flag} ${packages.join(' ')}`;
+            const pm = await detectPackageManager(projectPath);
+            let command;
+            if (pm === 'yarn') {
+                command = `yarn add${isDev ? ' --dev' : ''} ${packages.join(' ')}`;
+            } else if (pm === 'pnpm') {
+                command = `pnpm add${isDev ? ' --save-dev' : ''} ${packages.join(' ')}`;
+            } else {
+                const flag = isDev ? '--save-dev' : '--save';
+                command = `npm install ${flag} ${packages.join(' ')}`;
+            }
             const result = await runCommand(command, { cwd: projectPath, timeout });
 
             return {
@@ -231,7 +258,15 @@ export const uninstallNpmDepsTool = {
         }
 
         try {
-            const command = `npm uninstall ${packages.join(' ')}`;
+            const pm = await detectPackageManager(projectPath);
+            let command;
+            if (pm === 'yarn') {
+                command = `yarn remove ${packages.join(' ')}`;
+            } else if (pm === 'pnpm') {
+                command = `pnpm remove ${packages.join(' ')}`;
+            } else {
+                command = `npm uninstall ${packages.join(' ')}`;
+            }
             const result = await runCommand(command, { cwd: projectPath, timeout });
 
             return {

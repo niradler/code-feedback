@@ -6,6 +6,8 @@ import { makeTool, listMakeCommandsTool } from './make.js';
 import { npmTool, listNpmScriptsTool, installNpmDepsTool, uninstallNpmDepsTool } from './npm.js';
 import { gitTool } from './git.js';
 import { uvInitTool, uvAddTool, uvRunTool, uvLockTool, uvSyncTool, uvVenvTool } from './uv.js';
+import { curlTool } from './curl.js';
+import { dockerTool } from './docker.js';
 
 export const allTools = [
     typescriptTool,
@@ -25,6 +27,8 @@ export const allTools = [
     uvLockTool,
     uvSyncTool,
     uvVenvTool,
+    curlTool,
+    dockerTool,
 ];
 
 export function registerTools(server: { registerTool: (tool: any) => void }) {
