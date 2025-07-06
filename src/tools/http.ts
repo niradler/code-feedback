@@ -1,8 +1,7 @@
 import { z } from 'zod';
-import { runCommand } from '../utils/command.js';
-import { URL } from 'url';
+import axios from 'axios';
 
-const curlInputSchema = z.object({
+const httpInputSchema = z.object({
     url: z.string(),
     method: z.string().optional(),
     headers: z.record(z.string()).optional(),
@@ -10,7 +9,7 @@ const curlInputSchema = z.object({
     timeout: z.number().default(30000),
 });
 
-type CurlInput = z.infer<typeof curlInputSchema>;
+type HttpInput = z.infer<typeof httpInputSchema>;
 
 function isLocalhostOrLocalIp(hostname: string): boolean {
     if (
@@ -31,9 +30,9 @@ function isLocalhostOrLocalIp(hostname: string): boolean {
     return false;
 }
 
-export const curlTool = {
-    name: 'curl',
-    description: 'Make HTTP requests to localhost or local IPs using curl',
+export const httpTool = {
+    name: 'http',
+    description: 'Make HTTP requests to localhost or local IPs using axios',
     inputSchema: {
         type: 'object',
         properties: {
@@ -46,11 +45,11 @@ export const curlTool = {
         required: ['url']
     },
     async run(args: unknown) {
-        const parseResult = curlInputSchema.safeParse(args);
+        const parseResult = httpInputSchema.safeParse(args);
         if (!parseResult.success) {
             return { success: false, errors: parseResult.error.errors.map(e => `Validation error: ${e.path.join('.')} - ${e.message}`), warnings: [], output: '' };
         }
-        const { url, method = 'GET', headers = {}, data, timeout }: CurlInput = parseResult.data;
+        const { url, method = 'GET', headers = {}, data, timeout }: HttpInput = parseResult.data;
         let hostname = '';
         try {
             const parsed = new URL(url);
@@ -61,19 +60,23 @@ export const curlTool = {
         if (!isLocalhostOrLocalIp(hostname)) {
             return { success: false, errors: ['Only localhost and local IPs are allowed'], warnings: [], output: '' };
         }
-        let curlCmd = `curl -X ${method} --max-time ${Math.ceil(timeout / 1000)} --silent --show-error`;
-        for (const [key, value] of Object.entries(headers)) {
-            curlCmd += ` -H "${key}: ${value}"`;
-        }
-        if (data) {
-            curlCmd += ` --data "${data.replace(/"/g, '\\"')}"`;
-        }
-        curlCmd += ` "${url}"`;
         try {
-            const result = await runCommand(curlCmd, { timeout });
-            return { success: result.exitCode === 0, errors: result.stderr ? [result.stderr] : [], warnings: [], output: result.stdout };
-        } catch (error: unknown) {
-            return { success: false, errors: [error instanceof Error ? error.message : String(error)], warnings: [], output: '' };
+            const response = await axios({
+                url,
+                method,
+                headers,
+                data,
+                timeout,
+                validateStatus: () => true
+            });
+            return {
+                success: response.status >= 200 && response.status < 300,
+                errors: response.status >= 400 ? [`HTTP error: ${response.status}`] : [],
+                warnings: [],
+                output: typeof response.data === 'string' ? response.data : JSON.stringify(response.data)
+            };
+        } catch (error: any) {
+            return { success: false, errors: [error.message], warnings: [], output: '' };
         }
     },
 };

@@ -1,110 +1,81 @@
 import { z } from 'zod';
 import { promises as fs } from 'fs';
-import { join, resolve } from 'path';
 import Config from '../config/index.js';
-import ignore from 'ignore';
 
-// Helper: Recursively list files/folders up to 8 levels, .gitignore-aware
-async function listFiles(dir: string, ig: ReturnType<typeof ignore>, level = 0, maxLevel = 8): Promise<any[]> {
-    if (level > maxLevel) return [];
-    const entries: any[] = [];
-    const dirents = await fs.readdir(dir, { withFileTypes: true });
-    for (const dirent of dirents) {
-        const fullPath = join(dir, dirent.name);
-        const relPath = fullPath.replace(resolve(dir) + '/', '');
-        if (ig.ignores(relPath)) continue;
-        if (dirent.isDirectory()) {
-            entries.push({ type: 'dir', name: dirent.name, path: fullPath, children: await listFiles(fullPath, ig, level + 1, maxLevel) });
-        } else {
-            entries.push({ type: 'file', name: dirent.name, path: fullPath });
-        }
-    }
-    return entries;
-}
-
-const editOpSchema = z.object({
-    filePath: z.string(),
-    ops: z.array(z.object({
-        type: z.enum(['replace', 'add', 'remove']),
-        start: z.number().optional(),
-        end: z.number().optional(),
-        line: z.number().optional(),
-        content: z.string().optional(),
-    }))
+const editActionSchema = z.object({
+    type: z.enum(['replace', 'add', 'remove', 'replaceAll']),
+    start: z.number().optional(),
+    end: z.number().optional(),
+    line: z.number().optional(),
+    content: z.string().optional(),
 });
 
-export const editorTool = {
+export const editor = {
     name: 'editor',
-    description: 'File system editor: list, read, edit, copy, move, remove files/folders, .gitignore-aware, multi-file, line-based ops',
+    description: 'File editor: full-file CRUD (create, read, update, delete) and multi-line edits via array of edits.',
     inputSchema: {
         type: 'object',
         properties: {
-            action: { type: 'string', enum: ['list', 'read', 'edit', 'copy', 'move', 'remove'], description: 'Action to perform' },
-            target: { type: 'string', description: 'Target file or directory path' },
-            destination: { type: 'string', description: 'Destination path (for copy/move)', optional: true },
-            edits: { type: 'array', items: editOpSchema, description: 'Array of file edit operations', optional: true },
+            action: { type: 'string', enum: ['read', 'edit', 'delete', 'create'], description: 'Action to perform' },
+            file_path: { type: 'string', description: 'Target file path' },
+            edits: {
+                type: 'array',
+                items: editActionSchema,
+                description: 'Array of file line edits',
+                optional: true
+            },
+            content: { type: 'string', description: 'Content to create file', optional: true },
         },
-        required: ['action', 'target']
+        required: ['action', 'file_path']
     },
     async run(args: any) {
-        const { action, target, destination, edits } = args;
-        if (!Config.getInstance().isPathAllowed(target)) {
+        const { action, file_path, edits, content } = args;
+        if (!Config.getInstance().isPathAllowed(file_path)) {
             return { success: false, errors: ['Path not allowed'], warnings: [], output: '' };
         }
         try {
             switch (action) {
-                case 'list': {
-                    // .gitignore-aware listing
-                    const gitignorePath = join(target, '.gitignore');
-                    let ig = ignore();
-                    try {
-                        const gitignoreContent = await fs.readFile(gitignorePath, 'utf-8');
-                        ig = ignore().add(gitignoreContent);
-                    } catch { /* ignore missing .gitignore */ }
-                    const files = await listFiles(target, ig);
-                    return { success: true, errors: [], warnings: [], output: files };
-                }
                 case 'read': {
-                    const content = await fs.readFile(target, 'utf-8');
-                    return { success: true, errors: [], warnings: [], output: content };
+                    const fileContent = await fs.readFile(file_path, 'utf-8');
+                    return { success: true, errors: [], warnings: [], output: fileContent };
                 }
+                case 'create': {
+                    if (typeof content !== 'string') {
+                        return { success: false, errors: ['Missing content for create'], warnings: [], output: '' };
+                    }
+                    await fs.writeFile(file_path, content);
+                    return { success: true, errors: [], warnings: [], output: 'File created' };
+                }
+                case 'delete': {
+                    await fs.rm(file_path, { force: true });
+                    return { success: true, errors: [], warnings: [], output: 'File deleted' };
+                }
+                case 'update':
                 case 'edit': {
                     if (!Array.isArray(edits)) return { success: false, errors: ['Missing edits array'], warnings: [], output: '' };
-                    for (const edit of edits) {
-                        if (!Config.getInstance().isPathAllowed(edit.filePath)) {
-                            return { success: false, errors: [`Edit path not allowed: ${edit.filePath}`], warnings: [], output: '' };
+                    let lines: string[] = [];
+                    try {
+                        lines = (await fs.readFile(file_path, 'utf-8')).split('\n');
+                    } catch (e: any) {
+                        if (e.code === 'ENOENT') {
+                            lines = [];
+                        } else {
+                            throw e;
                         }
-                        const lines = (await fs.readFile(edit.filePath, 'utf-8')).split('\n');
-                        for (const op of edit.ops) {
-                            if (op.type === 'replace' && op.start !== undefined && op.end !== undefined && op.content !== undefined) {
-                                lines.splice(op.start, op.end - op.start + 1, ...op.content.split('\n'));
-                            } else if (op.type === 'add' && op.line !== undefined && op.content !== undefined) {
-                                lines.splice(op.line, 0, ...op.content.split('\n'));
-                            } else if (op.type === 'remove' && op.start !== undefined && op.end !== undefined) {
-                                lines.splice(op.start, op.end - op.start + 1);
-                            }
-                        }
-                        await fs.writeFile(edit.filePath, lines.join('\n'));
                     }
+                    for (const act of edits) {
+                        if (act.type === 'replace' && act.start !== undefined && act.end !== undefined && act.content !== undefined) {
+                            lines.splice(act.start, act.end - act.start + 1, ...act.content.split('\n'));
+                        } else if (act.type === 'add' && act.line !== undefined && act.content !== undefined) {
+                            lines.splice(act.line, 0, ...act.content.split('\n'));
+                        } else if (act.type === 'remove' && act.start !== undefined && act.end !== undefined) {
+                            lines.splice(act.start, act.end - act.start + 1);
+                        } else if (act.type === 'replaceAll' && act.content !== undefined) {
+                            lines = act.content.split('\n');
+                        }
+                    }
+                    await fs.writeFile(file_path, lines.join('\n'));
                     return { success: true, errors: [], warnings: [], output: 'Edits applied' };
-                }
-                case 'copy': {
-                    if (!destination || !Config.getInstance().isPathAllowed(destination)) {
-                        return { success: false, errors: ['Destination path not allowed'], warnings: [], output: '' };
-                    }
-                    await fs.copyFile(target, destination);
-                    return { success: true, errors: [], warnings: [], output: 'File copied' };
-                }
-                case 'move': {
-                    if (!destination || !Config.getInstance().isPathAllowed(destination)) {
-                        return { success: false, errors: ['Destination path not allowed'], warnings: [], output: '' };
-                    }
-                    await fs.rename(target, destination);
-                    return { success: true, errors: [], warnings: [], output: 'File moved' };
-                }
-                case 'remove': {
-                    await fs.rm(target, { recursive: true, force: true });
-                    return { success: true, errors: [], warnings: [], output: 'Removed' };
                 }
                 default:
                     return { success: false, errors: ['Unknown action'], warnings: [], output: '' };
@@ -114,3 +85,4 @@ export const editorTool = {
         }
     },
 };
+

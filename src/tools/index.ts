@@ -3,12 +3,14 @@ import { javascriptTool } from './javascript.js';
 import { pythonTool } from './python.js';
 import { goTool } from './go.js';
 import { makeTool, listMakeCommandsTool } from './make.js';
-import { npmTool, listNpmScriptsTool, installNpmDepsTool, uninstallNpmDepsTool } from './npm.js';
+import { npmTool, listNpmScriptsTool, installNpmDepsTool, uninstallNpmDepsTool, auditNpmDepsTool } from './npm.js';
 import { gitTool } from './git.js';
 import { uvInitTool, uvAddTool, uvRunTool, uvLockTool, uvSyncTool, uvVenvTool } from './uv.js';
-import { curlTool } from './curl.js';
+import { httpTool } from './http.js';
 import { dockerTool } from './docker.js';
-import { editorTool } from './editor.js';
+import { editor } from './editor.js';
+import { editor_filesystem } from './editor_filesystem.js';
+import { find } from './find.js';
 
 export const allTools = [
     typescriptTool,
@@ -21,6 +23,7 @@ export const allTools = [
     listNpmScriptsTool,
     installNpmDepsTool,
     uninstallNpmDepsTool,
+    auditNpmDepsTool,
     gitTool,
     uvInitTool,
     uvAddTool,
@@ -28,9 +31,11 @@ export const allTools = [
     uvLockTool,
     uvSyncTool,
     uvVenvTool,
-    curlTool,
+    httpTool,
     dockerTool,
-    editorTool,
+    editor,
+    editor_filesystem,
+    find,
 ];
 
 export function registerTools(server: { registerTool: (tool: any) => void }) {
@@ -39,4 +44,5 @@ export function registerTools(server: { registerTool: (tool: any) => void }) {
     }
 }
 
-export { listNpmScriptsTool } from './npm.js'; 
+export { listNpmScriptsTool } from './npm.js';
+export { auditNpmDepsTool } from './npm.js'; 

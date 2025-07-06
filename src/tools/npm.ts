@@ -27,6 +27,11 @@ const uninstallSchema = z.object({
     timeout: z.number().default(60000),
 });
 
+const auditSchema = z.object({
+    projectPath: z.string(),
+    timeout: z.number().default(60000),
+});
+
 // Utility to detect package manager based on lock files
 async function detectPackageManager(projectPath: string): Promise<'pnpm' | 'yarn' | 'npm'> {
     const pnpmLock = join(projectPath, 'pnpm-lock.yaml');
@@ -273,6 +278,64 @@ export const uninstallNpmDepsTool = {
                 success: result.exitCode === 0,
                 errors: result.stderr ? [result.stderr] as string[] : [],
                 warnings: [] as string[],
+                output: result.stdout,
+            };
+        } catch (error: any) {
+            return { success: false, errors: [error.message || String(error)] as string[], warnings: [] as string[], output: '' };
+        }
+    },
+};
+
+export const auditNpmDepsTool = {
+    name: 'audit_npm_deps',
+    description: 'Audit npm dependencies for vulnerabilities in a project',
+    inputSchema: {
+        type: 'object',
+        properties: {
+            projectPath: {
+                type: 'string',
+                description: 'Path to the project directory containing package.json'
+            },
+            timeout: {
+                type: 'number',
+                description: 'Timeout in milliseconds (default: 60000)',
+                default: 60000
+            }
+        },
+        required: ['projectPath']
+    },
+    async run(args: any) {
+        const parseResult = auditSchema.safeParse(args);
+        if (!parseResult.success) {
+            return {
+                success: false,
+                errors: parseResult.error.errors.map(e => `Validation error: ${e.path.join('.')} - ${e.message}`),
+                warnings: [],
+                output: ''
+            };
+        }
+
+        const { projectPath, timeout } = parseResult.data;
+
+        if (!Config.getInstance().isPathAllowed(projectPath)) {
+            return { success: false, errors: ['Path not allowed'] as string[], warnings: [] as string[], output: '' };
+        }
+
+        try {
+            const pm = await detectPackageManager(projectPath);
+            let command;
+            if (pm === 'yarn') {
+                command = 'yarn audit --json';
+            } else if (pm === 'pnpm') {
+                command = 'pnpm audit --json';
+            } else {
+                command = 'npm audit --json';
+            }
+            const result = await runCommand(command, { cwd: projectPath, timeout });
+            return {
+                success: result.exitCode === 0,
+                errors: result.stderr ? [result.stderr] as string[] : [],
+                warnings: [],
                 output: result.stdout,
             };
         } catch (error: any) {

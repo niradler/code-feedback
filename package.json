@@ -1,6 +1,6 @@
 {
   "name": "code-feedback",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "MCP server for providing code feedback, validation, compilation, and linting",
   "main": "dist/index.js",
   "bin": {
@@ -44,6 +44,7 @@
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.13.2",
+    "axios": "^1.10.0",
     "ignore": "^7.0.5",
     "zod": "^3.25.67"
   },
