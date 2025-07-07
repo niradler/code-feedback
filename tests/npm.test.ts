@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { registerTools, listNpmScriptsTool } from '../src/tools';
+import { registerTools, listNpmScriptsTool, npmTool, checkNpmDependencyTool } from '../src/tools';
 import { join } from 'path';
 import { promises as fs } from 'fs';
 import Config from '../src/config/index.js';
@@ -22,10 +22,10 @@ describe('NPM Tools', () => {
         }
     });
 
-    it('should register the run_npm_script tool', () => {
+    it('should register the npm tool', () => {
         const server = new DummyServer();
         registerTools(server);
-        const tool = server.tools.find(t => t.name === 'run_npm_script');
+        const tool = server.tools.find(t => t.name === 'npm');
         expect(tool).toBeDefined();
         expect(tool.inputSchema).toBeDefined();
         expect(typeof tool.run).toBe('function');
@@ -35,6 +35,15 @@ describe('NPM Tools', () => {
         const server = new DummyServer();
         registerTools(server);
         const tool = server.tools.find(t => t.name === 'list_npm_scripts');
+        expect(tool).toBeDefined();
+        expect(tool.inputSchema).toBeDefined();
+        expect(typeof tool.run).toBe('function');
+    });
+
+    it('should register the check_npm_dependency tool', () => {
+        const server = new DummyServer();
+        registerTools(server);
+        const tool = server.tools.find(t => t.name === 'check_npm_dependency');
         expect(tool).toBeDefined();
         expect(tool.inputSchema).toBeDefined();
         expect(typeof tool.run).toBe('function');
@@ -70,6 +79,39 @@ describe('NPM Tools', () => {
             for (const name of scriptNames) {
                 expect(stdout).toContain(name);
             }
+        });
+    });
+
+    describe('npmTool', () => {
+        it('should handle missing script gracefully', async () => {
+            const result = await npmTool.run({ projectPath: testProjectPath, command: 'run', scriptName: 'not_a_real_script' });
+            expect(result.success).toBe(false);
+            expect(result.errors[0]).toMatch(/not found/);
+        });
+        it('should handle audit command', async () => {
+            const result = await npmTool.run({ projectPath: testProjectPath, command: 'audit' });
+            expect(typeof result.success).toBe('boolean');
+            expect(typeof result.output).toBe('string');
+        });
+    });
+
+    describe('checkNpmDependencyTool', () => {
+        it('should check for a known dependency', async () => {
+            const packageJsonPath = join(testProjectPath, 'package.json');
+            const packageJsonContent = await fs.readFile(packageJsonPath, 'utf-8');
+            const packageJson = JSON.parse(packageJsonContent);
+            const depName = Object.keys(packageJson.dependencies || {})[0] || Object.keys(packageJson.devDependencies || {})[0];
+            if (depName) {
+                const result = await checkNpmDependencyTool.run({ projectPath: testProjectPath, packageName: depName });
+                expect(result.success).toBe(true);
+                expect(result.found).toBe(true);
+                expect(['dependency', 'devDependency']).toContain(result.type);
+            }
+        });
+        it('should return not found for a non-existent dependency', async () => {
+            const result = await checkNpmDependencyTool.run({ projectPath: testProjectPath, packageName: 'this-package-should-not-exist' });
+            expect(result.success).toBe(true);
+            expect(result.found).toBe(false);
         });
     });
 }); 

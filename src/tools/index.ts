@@ -3,7 +3,7 @@ import { javascriptTool } from './javascript.js';
 import { pythonTool } from './python.js';
 import { goTool } from './go.js';
 import { makeTool, listMakeCommandsTool } from './make.js';
-import { npmTool, listNpmScriptsTool, installNpmDepsTool, uninstallNpmDepsTool, auditNpmDepsTool } from './npm.js';
+import { npmTool, listNpmScriptsTool, checkNpmDependencyTool } from './npm.js';
 import { gitTool } from './git.js';
 import { uvInitTool, uvAddTool, uvRunTool, uvLockTool, uvSyncTool, uvVenvTool } from './uv.js';
 import { httpTool } from './http.js';
@@ -21,9 +21,7 @@ export const allTools = [
     listMakeCommandsTool,
     npmTool,
     listNpmScriptsTool,
-    installNpmDepsTool,
-    uninstallNpmDepsTool,
-    auditNpmDepsTool,
+    checkNpmDependencyTool,
     gitTool,
     uvInitTool,
     uvAddTool,
@@ -45,4 +43,5 @@ export function registerTools(server: { registerTool: (tool: any) => void }) {
 }
 
 export { listNpmScriptsTool } from './npm.js';
-export { auditNpmDepsTool } from './npm.js'; 
+export { checkNpmDependencyTool } from './npm.js';
+export { npmTool } from './npm.js'; 

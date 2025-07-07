@@ -7,26 +7,22 @@ class DummyServer {
 }
 
 describe('Python Tool', () => {
-    it('should register the validate_python_file tool', () => {
+    it('should register the python tool', () => {
         const server = new DummyServer();
         registerTools(server);
-        const tool = server.tools.find(t => t.name === 'validate_python_file');
+        const tool = server.tools.find(t => t.name === 'python');
         expect(tool).toBeDefined();
         expect(tool.inputSchema).toBeDefined();
         expect(typeof tool.run).toBe('function');
     });
 
-    it('should validate input schema for required and optional fields', () => {
+    it('should have a valid input schema object', () => {
         const server = new DummyServer();
         registerTools(server);
-        const tool = server.tools.find(t => t.name === 'validate_python_file');
-        const parse = typeof tool.inputSchema.parse === 'function' ? tool.inputSchema.parse.bind(tool.inputSchema) : null;
-        if (parse) {
-            expect(() => parse({ filePath: 'foo.py' })).not.toThrow();
-            expect(() => parse({ filePath: 'foo.py', linter: 'pylint', fix: true })).not.toThrow();
-            expect(() => parse({})).toThrow();
-        } else {
-            expect(tool.inputSchema).toBeDefined();
-        }
+        const tool = server.tools.find(t => t.name === 'python');
+        expect(tool.inputSchema).toBeDefined();
+        expect(typeof tool.inputSchema).toBe('object');
+        expect(tool.inputSchema.properties).toBeDefined();
+        expect(tool.inputSchema.properties.filePath).toBeDefined();
     });
 }); 
