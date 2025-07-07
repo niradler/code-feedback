@@ -3,31 +3,18 @@ import { runCommand } from '../utils/command.js';
 import Config from '../config/index.js';
 import { dirname } from 'path';
 import { promises as fs } from 'fs';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 const inputSchema = z.object({
     filePath: z.string(),
     actions: z.array(z.enum(['build', 'fmt', 'mod', 'vet', 'test'])).optional(),
+    command: z.string().optional(),
 });
 
 export const goTool = {
-    name: 'validate_go_file',
-    description: 'Validate Go source file or module with compilation, formatting, mod, vet, and test checks',
-    inputSchema: {
-        type: 'object',
-        properties: {
-            filePath: {
-                type: 'string',
-                description: 'Path to the Go file or directory to validate'
-            },
-            actions: {
-                type: 'array',
-                description: 'List of actions to perform: build, fmt, mod, vet, test',
-                items: { type: 'string', enum: ['build', 'fmt', 'mod', 'vet', 'test'] },
-                default: ['build', 'fmt']
-            }
-        },
-        required: ['filePath']
-    },
+    name: 'go',
+    description: 'Run Go code and return the output, errors, and execution time.',
+    inputSchema: zodToJsonSchema(inputSchema),
     async run(args: any) {
         // Validate input using Zod
         const parseResult = inputSchema.safeParse(args);
@@ -40,7 +27,7 @@ export const goTool = {
             };
         }
 
-        const { filePath } = parseResult.data;
+        const { filePath, command } = parseResult.data;
         let { actions } = parseResult.data;
         if (!actions || actions.length === 0) {
             actions = ['build', 'fmt'];
@@ -53,6 +40,15 @@ export const goTool = {
             await fs.access(filePath);
             const feedback = { success: true, errors: [] as string[], warnings: [] as string[], output: '' };
             const dir = dirname(filePath);
+            if (command) {
+                const result = await runCommand(`go ${command}`, { cwd: dir });
+                feedback.output += `Command: go ${command}\n${result.stdout}\n`;
+                if (result.exitCode !== 0) {
+                    feedback.success = false;
+                    feedback.errors.push(`Command failed: ${result.stderr}`);
+                }
+                return feedback;
+            }
             for (const action of actions) {
                 if (action === 'build') {
                     const buildResult = await runCommand(`go build -o /dev/null "${filePath}"`, { cwd: dir });

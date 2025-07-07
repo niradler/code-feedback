@@ -3,6 +3,7 @@ import { runCommand } from '../utils/command.js';
 import Config from '../config/index.js';
 import { join } from 'path';
 import { promises as fs } from 'fs';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 const inputSchema = z.object({
     projectPath: z.string(),
@@ -17,33 +18,9 @@ const listMakeCommandsInputSchema = z.object({
 });
 
 export const makeTool = {
-    name: 'run_make_command',
-    description: 'Run Make commands (make, make build, make test, etc.)',
-    inputSchema: {
-        type: 'object',
-        properties: {
-            projectPath: {
-                type: 'string',
-                description: 'Path to the project directory containing Makefile'
-            },
-            target: {
-                type: 'string',
-                description: 'Make target to run (default: no target)'
-            },
-            makeArgs: {
-                type: 'array',
-                items: { type: 'string' },
-                description: 'Additional arguments for make command',
-                default: []
-            },
-            timeout: {
-                type: 'number',
-                description: 'Timeout in milliseconds (default: 60000)',
-                default: 60000
-            }
-        },
-        required: ['projectPath']
-    },
+    name: 'make',
+    description: 'Run Makefile targets and return the output, errors, and execution time.',
+    inputSchema: zodToJsonSchema(inputSchema),
     async run(args: any) {
         // Validate input using Zod
         const parseResult = inputSchema.safeParse(args);

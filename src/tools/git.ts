@@ -3,6 +3,7 @@ import { runCommand } from '../utils/command.js';
 import Config from '../config/index.js';
 import { promises as fs } from 'fs';
 import { join } from 'path';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 const inputSchema = z.object({
     repoPath: z.string(),
@@ -26,51 +27,9 @@ const inputSchema = z.object({
 });
 
 export const gitTool = {
-    name: 'run_git_command',
-    description: 'Run git commands (status, diff, log, branch, checkout, commit, add, push, pull, merge, reset, or custom)',
-    inputSchema: {
-        type: 'object',
-        properties: {
-            repoPath: {
-                type: 'string',
-                description: 'Path to the git repository root'
-            },
-            gitCommand: {
-                type: 'string',
-                description: 'Git command to run (status, diff, log, branch, checkout, commit, add, push, pull, merge, reset, custom)',
-                enum: [
-                    'status',
-                    'diff',
-                    'log',
-                    'branch',
-                    'checkout',
-                    'commit',
-                    'add',
-                    'push',
-                    'pull',
-                    'merge',
-                    'reset',
-                    'custom'
-                ]
-            },
-            args: {
-                type: 'array',
-                items: { type: 'string' },
-                description: 'Additional arguments for the git command',
-                default: []
-            },
-            message: {
-                type: 'string',
-                description: 'Commit message (for commit command only)'
-            },
-            timeout: {
-                type: 'number',
-                description: 'Timeout in milliseconds (default: 60000)',
-                default: 60000
-            }
-        },
-        required: ['repoPath', 'gitCommand']
-    },
+    name: 'git',
+    description: 'Run git commands (status, add, commit, push, etc.) in a repository.',
+    inputSchema: zodToJsonSchema(inputSchema),
     async run(args: any) {
         const parseResult = inputSchema.safeParse(args);
         if (!parseResult.success) {

@@ -3,6 +3,7 @@ import { runCommand } from '../utils/command.js';
 import Config from '../config/index.js';
 import { join } from 'path';
 import { promises as fs } from 'fs';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 const inputSchema = z.object({
     projectPath: z.string(),
@@ -44,27 +45,9 @@ async function detectPackageManager(projectPath: string): Promise<'pnpm' | 'yarn
 }
 
 export const npmTool = {
-    name: 'run_npm_script',
-    description: 'Run any npm script defined in package.json (test, lint, build, etc.)',
-    inputSchema: {
-        type: 'object',
-        properties: {
-            projectPath: {
-                type: 'string',
-                description: 'Path to the project directory containing package.json'
-            },
-            scriptName: {
-                type: 'string',
-                description: 'Name of the npm script to run'
-            },
-            timeout: {
-                type: 'number',
-                description: 'Timeout in milliseconds (default: 60000)',
-                default: 60000
-            }
-        },
-        required: ['projectPath', 'scriptName']
-    },
+    name: 'npm',
+    description: 'Run npm commands (install, uninstall, run, etc.) in a project directory.',
+    inputSchema: zodToJsonSchema(inputSchema),
     async run(args: any) {
         // Validate input using Zod
         const parseResult = inputSchema.safeParse(args);

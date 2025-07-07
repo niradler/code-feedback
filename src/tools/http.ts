@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import axios from 'axios';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 const httpInputSchema = z.object({
     url: z.string(),
@@ -32,18 +33,8 @@ function isLocalhostOrLocalIp(hostname: string): boolean {
 
 export const httpTool = {
     name: 'http',
-    description: 'Make HTTP requests to localhost or local IPs using axios',
-    inputSchema: {
-        type: 'object',
-        properties: {
-            url: { type: 'string', description: 'The URL to request (must be localhost or local IP)' },
-            method: { type: 'string', description: 'HTTP method (default: GET)' },
-            headers: { type: 'object', additionalProperties: { type: 'string' }, description: 'Request headers' },
-            data: { type: 'string', description: 'Request body (for POST/PUT)' },
-            timeout: { type: 'number', description: 'Timeout in milliseconds (default: 30000)', default: 30000 }
-        },
-        required: ['url']
-    },
+    description: 'Make HTTP requests (GET, POST, etc.) and return the response.',
+    inputSchema: zodToJsonSchema(httpInputSchema),
     async run(args: unknown) {
         const parseResult = httpInputSchema.safeParse(args);
         if (!parseResult.success) {

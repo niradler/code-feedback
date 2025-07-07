@@ -3,6 +3,7 @@ import { runCommand } from '../utils/command.js';
 import Config from '../config/index.js';
 import { dirname, join } from 'path';
 import { promises as fs } from 'fs';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 const inputSchema = z.object({
     filePath: z.string(),
@@ -11,28 +12,9 @@ const inputSchema = z.object({
 });
 
 export const pythonTool = {
-    name: 'validate_python_file',
-    description: 'Validate Python file with syntax checking and optional linting',
-    inputSchema: {
-        type: 'object',
-        properties: {
-            filePath: {
-                type: 'string',
-                description: 'Path to the Python file to validate'
-            },
-            linter: {
-                type: 'string',
-                enum: ['pylint', 'flake8', 'black', 'mypy'],
-                description: 'Linter to use (pylint, flake8, black, mypy)'
-            },
-            fix: {
-                type: 'boolean',
-                description: 'Whether to auto-fix issues (works with black)',
-                default: false
-            }
-        },
-        required: ['filePath']
-    },
+    name: 'python',
+    description: 'Run Python code and return the output, errors, and execution time.',
+    inputSchema: zodToJsonSchema(inputSchema),
     async run(args: any) {
         // Validate input using Zod
         const parseResult = inputSchema.safeParse(args);

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { runCommand } from '../utils/command.js';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 const dockerInputSchema = z.object({
     command: z.enum(['ps', 'run', 'stop', 'rm', 'rmi', 'inspect']),
@@ -15,15 +16,8 @@ async function isContainerRunning(containerId: string): Promise<boolean> {
 
 export const dockerTool = {
     name: 'docker',
-    description: 'Run basic Docker commands: ps, run, stop, rm (safe), rmi, inspect',
-    inputSchema: {
-        type: 'object',
-        properties: {
-            command: { type: 'string', enum: ['ps', 'run', 'stop', 'rm', 'rmi', 'inspect'], description: 'Docker command to run' },
-            args: { type: 'array', items: { type: 'string' }, description: 'Arguments for the command' },
-        },
-        required: ['command']
-    },
+    description: 'Run Docker commands (build, run, stop, etc.) in a project directory.',
+    inputSchema: zodToJsonSchema(dockerInputSchema),
     async run(args: unknown) {
         const parseResult = dockerInputSchema.safeParse(args);
         if (!parseResult.success) {

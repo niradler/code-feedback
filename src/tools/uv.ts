@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { runCommand } from '../utils/command.js';
 import Config from '../config/index.js';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 const uvInitSchema = z.object({
     projectPath: z.string(),
@@ -38,15 +39,7 @@ const uvVenvSchema = z.object({
 export const uvInitTool = {
     name: 'uv_init',
     description: 'Initialize a new Python project using uv',
-    inputSchema: {
-        type: 'object',
-        properties: {
-            projectPath: { type: 'string', description: 'Path to the directory to initialize the project in' },
-            projectName: { type: 'string', description: 'Name of the project' },
-            timeout: { type: 'number', description: 'Timeout in milliseconds (default: 60000)', default: 60000 }
-        },
-        required: ['projectPath', 'projectName']
-    },
+    inputSchema: zodToJsonSchema(uvInitSchema),
     async run(args: any) {
         const parseResult = uvInitSchema.safeParse(args);
         if (!parseResult.success) {
@@ -69,15 +62,7 @@ export const uvInitTool = {
 export const uvAddTool = {
     name: 'uv_add',
     description: 'Add Python dependencies to a project using uv',
-    inputSchema: {
-        type: 'object',
-        properties: {
-            projectPath: { type: 'string', description: 'Path to the project directory' },
-            packages: { type: 'array', items: { type: 'string' }, description: 'Array of package names to add' },
-            timeout: { type: 'number', description: 'Timeout in milliseconds (default: 120000)', default: 120000 }
-        },
-        required: ['projectPath', 'packages']
-    },
+    inputSchema: zodToJsonSchema(uvAddSchema),
     async run(args: any) {
         const parseResult = uvAddSchema.safeParse(args);
         if (!parseResult.success) {
@@ -100,15 +85,7 @@ export const uvAddTool = {
 export const uvRunTool = {
     name: 'uv_run',
     description: 'Run a command in the uv environment',
-    inputSchema: {
-        type: 'object',
-        properties: {
-            projectPath: { type: 'string', description: 'Path to the project directory' },
-            command: { type: 'string', description: 'Command to run in the uv environment' },
-            timeout: { type: 'number', description: 'Timeout in milliseconds (default: 60000)', default: 60000 }
-        },
-        required: ['projectPath', 'command']
-    },
+    inputSchema: zodToJsonSchema(uvRunSchema),
     async run(args: any) {
         const parseResult = uvRunSchema.safeParse(args);
         if (!parseResult.success) {
@@ -131,14 +108,7 @@ export const uvRunTool = {
 export const uvLockTool = {
     name: 'uv_lock',
     description: 'Lock Python dependencies using uv',
-    inputSchema: {
-        type: 'object',
-        properties: {
-            projectPath: { type: 'string', description: 'Path to the project directory' },
-            timeout: { type: 'number', description: 'Timeout in milliseconds (default: 60000)', default: 60000 }
-        },
-        required: ['projectPath']
-    },
+    inputSchema: zodToJsonSchema(uvLockSchema),
     async run(args: any) {
         const parseResult = uvLockSchema.safeParse(args);
         if (!parseResult.success) {
@@ -161,14 +131,7 @@ export const uvLockTool = {
 export const uvSyncTool = {
     name: 'uv_sync',
     description: 'Sync Python dependencies using uv',
-    inputSchema: {
-        type: 'object',
-        properties: {
-            projectPath: { type: 'string', description: 'Path to the project directory' },
-            timeout: { type: 'number', description: 'Timeout in milliseconds (default: 120000)', default: 120000 }
-        },
-        required: ['projectPath']
-    },
+    inputSchema: zodToJsonSchema(uvSyncSchema),
     async run(args: any) {
         const parseResult = uvSyncSchema.safeParse(args);
         if (!parseResult.success) {
@@ -191,14 +154,7 @@ export const uvSyncTool = {
 export const uvVenvTool = {
     name: 'uv_venv',
     description: 'Manage the uv virtual environment',
-    inputSchema: {
-        type: 'object',
-        properties: {
-            projectPath: { type: 'string', description: 'Path to the project directory' },
-            timeout: { type: 'number', description: 'Timeout in milliseconds (default: 60000)', default: 60000 }
-        },
-        required: ['projectPath']
-    },
+    inputSchema: zodToJsonSchema(uvVenvSchema),
     async run(args: any) {
         const parseResult = uvVenvSchema.safeParse(args);
         if (!parseResult.success) {

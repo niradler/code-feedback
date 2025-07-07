@@ -9,7 +9,7 @@ import { uvInitTool, uvAddTool, uvRunTool, uvLockTool, uvSyncTool, uvVenvTool } 
 import { httpTool } from './http.js';
 import { dockerTool } from './docker.js';
 import { editor } from './editor.js';
-import { editor_filesystem } from './editor_filesystem.js';
+import { filesystem } from './filesystem.js';
 import { find } from './find.js';
 
 export const allTools = [
@@ -34,7 +34,7 @@ export const allTools = [
     httpTool,
     dockerTool,
     editor,
-    editor_filesystem,
+    filesystem,
     find,
 ];
 

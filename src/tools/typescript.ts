@@ -3,6 +3,7 @@ import { runCommand } from '../utils/command.js';
 import Config from '../config/index.js';
 import { dirname, join } from 'path';
 import { promises as fs } from 'fs';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 // Define the input schema for the tool
 const inputSchema = z.object({
@@ -13,20 +14,7 @@ const inputSchema = z.object({
 export const typescriptTool = {
     name: 'validate_typescript_file',
     description: 'Validate and compile a TypeScript file, checking for syntax and type errors',
-    inputSchema: {
-        type: 'object',
-        properties: {
-            filePath: {
-                type: 'string',
-                description: 'Path to the TypeScript file to validate'
-            },
-            tsConfigPath: {
-                type: 'string',
-                description: 'Optional path to tsconfig.json (defaults to searching up the directory tree)'
-            }
-        },
-        required: ['filePath']
-    },
+    inputSchema: zodToJsonSchema(inputSchema),
 
     async run(args: any) {
         // Validate input using Zod

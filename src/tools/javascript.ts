@@ -3,24 +3,16 @@ import { runCommand } from '../utils/command.js';
 import Config from '../config/index.js';
 import { dirname } from 'path';
 import { promises as fs } from 'fs';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 const inputSchema = z.object({
     filePath: z.string(),
 });
 
 export const javascriptTool = {
-    name: 'validate_javascript_file',
-    description: 'Validate JavaScript file syntax using Node.js',
-    inputSchema: {
-        type: 'object',
-        properties: {
-            filePath: {
-                type: 'string',
-                description: 'Path to the JavaScript file to validate'
-            }
-        },
-        required: ['filePath']
-    },
+    name: 'javascript',
+    description: 'Run JavaScript code and return the output, errors, and execution time.',
+    inputSchema: zodToJsonSchema(inputSchema),
     async run(args: any) {
         // Validate input using Zod
         const parseResult = inputSchema.safeParse(args);
