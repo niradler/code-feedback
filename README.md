@@ -161,7 +161,19 @@ Send a request to the server (via HTTP, CLI, or SDK):
 - `list_npm_scripts`: List all available npm scripts in a project.
 - `install_npm_deps`: Install npm dependencies (packages) in a project.
 - `uninstall_npm_deps`: Uninstall npm dependencies from a project.
+- `check_npm_dependency`: Check if a specific npm dependency is installed in a project.
 - `run_git_command`: Run git commands (status, diff, log, branch, checkout, commit, add, push, pull, merge, reset, or custom).
+- `uv_init`: Initialize a new Python project using uv.
+- `uv_add`: Add Python dependencies to a project using uv.
+- `uv_run`: Run a command in the uv environment.
+- `uv_lock`: Lock Python dependencies using uv.
+- `uv_sync`: Sync Python dependencies using uv.
+- `uv_venv`: Manage the uv virtual environment.
+- `http`: Make HTTP requests (GET, POST, etc.) to localhost or local IPs and return the response.
+- `docker`: Run Docker commands (build, run, stop, rm, rmi, inspect, ps) in a project directory.
+- `editor`: Edit, create, delete, or read text files with robust line/content-based edits, returning git-style diffs.
+- `filesystem`: Secure, batch multi-file/folder CRUD and query operations (delete, create, move, copy, read, stat, search, directory tree, glob support, etc.).
+- `find`: Powerful file and text search using ripgrep (regex, globs, context lines, structured output, etc.).
 
 All tools accept file/project paths and relevant options. Responses are structured as:
 
@@ -172,6 +184,68 @@ All tools accept file/project paths and relevant options. Responses are structur
   "warnings": ["warning messages"],
   "output": "command output",
   "details": { "command": "...", "exitCode": 0, "duration": 1234 }
+}
+```
+
+### Usage Examples
+
+**uv: Initialize a Python project**
+
+```json
+{
+  "tool": "uv_init",
+  "args": { "projectPath": "./my-python-app", "projectName": "my-python-app" }
+}
+```
+
+**http: Make a local HTTP GET request**
+
+```json
+{
+  "tool": "http",
+  "args": { "url": "http://localhost:8000/health" }
+}
+```
+
+**docker: List running containers**
+
+```json
+{
+  "tool": "docker",
+  "args": { "command": "ps" }
+}
+```
+
+**editor: Replace text in a file**
+
+```json
+{
+  "tool": "editor",
+  "args": {
+    "action": "edit",
+    "file_path": "./README.md",
+    "edits": [{ "mode": "content", "oldText": "foo", "newText": "bar" }]
+  }
+}
+```
+
+**filesystem: List directory tree**
+
+```json
+{
+  "tool": "filesystem",
+  "args": {
+    "ops": [{ "type": "directoryTree", "path": ".", "maxDepth": 2 }]
+  }
+}
+```
+
+**find: Search for TODO comments in JS files**
+
+```json
+{
+  "tool": "find",
+  "args": { "pattern": "TODO", "glob": "*.js" }
 }
 ```
 
@@ -190,6 +264,13 @@ Request advanced code review, analysis, and guidance using prompts:
 - **security-audit**: Security audit and vulnerability identification
 - **performance-analysis**: Performance analysis and optimization suggestions
 - **coding-task-with-mcp**: Guide for completing a coding task using MCP tools and best practices
+- **find-imports**: Find all files that import a specific package
+- **commit-changes**: Show git diff and commit all staged changes with a generated message
+- **install-and-audit**: Install a new npm dependency and check for vulnerabilities
+- **format-python-directory**: Format all Python files in a directory using Black
+- **build-and-test**: Build and test the project using Make or npm
+- **list-docker-containers**: List all running Docker containers
+- **validate-typescript-file**: Validate a TypeScript file for syntax and type errors
 
 Each prompt returns actionable, structured feedback for your code.
 
